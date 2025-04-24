@@ -10,8 +10,8 @@ from scapy.all import sniff, IP, TCP, UDP, ICMP
 import subprocess
 import platform
 
-#cant use argparse for this so this selects modes for each argument
-# Should also return here after a process Counter: 18/20 status: :)
+#cant use argparse for this so this selects modes for each argument, hard coded for ease
+# Should also return here after a process, so it looops backs after a function. Success Counter: 18/20 status: :)
 def get_arguments_idle():
     print("Select Mode:")
     print("1: arp")
@@ -40,7 +40,7 @@ def print_arp_results(devices):
     for device in devices:
         print(f"{device['ip']}\t\t{device['mac']}") #need to test with someone else than my own ip
 
-# Port Scan
+# Port Scan, scans for open ports on a target device, takes up to 18 minutes as every port takes about a second to scan
 def scan_port(target_ip, port):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -68,7 +68,7 @@ def scan_host(target):
     except socket.error as e:
         print(f"Socket error: {e}")
 
-# Speedtest
+# Speedtest, checks for bandwidth of connection and displays results
 def check_bandwidth():
     try:
         st = speedtest.Speedtest()
@@ -80,9 +80,9 @@ def check_bandwidth():
         print(f"Upload Speed: {upload_speed:.2f} Mbps")
         print(f"Ping Latency: {ping:.2f} ms")
     except Exception as e:
-        print(f"Error during speed test: {e}")
+        print(f"Error during speed test: {e}") #if it fails it displays and error message
 
-# Ip blocking (haven't tested and might remove if it doesnt work maybe even if it doesn't work)
+# Ip blocking (haven't tested in full), if any abnormal traffic is found it recommends to block certain ip addresses into a blacklist
 def block_ip(ip_address):
     system_os = platform.system()
 
@@ -136,13 +136,14 @@ def analyze_packet(packet):
         else:
             print(f"[!] Unknown protocol from {src}")
 
-#look  more into this packet snififng as it's not saving the pcap file when pressing ctrl+ c
+#This starts the packet sniffing processs to store into pcap files
+    #Look  more into this packet snififng as it's not saving the pcap file when stopping the process.
 def start_sniffing(interface=None, pcap_file="captured_traffic.pcap"):
     print("[*] Sniffing started. Press Ctrl+C in the IDLE shell to stop...")
     try:
         sniff(filter="ip", prn=analyze_packet, iface=interface, store=False)
     except KeyboardInterrupt:
-        print(f"\n[*] Sniffing stopped. Saving packets to {pcap_file}") #This does not seem to work so I'm not sure how to make it work
+        print(f"\n[*] Sniffing stopped. Saving packets to {pcap_file}") #This does not seem to work reliably, make note
         wrpcap(pcap_file, captured_packets)
         print("[*] PCAP saved successfully.")
     except PermissionError:
